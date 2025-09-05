@@ -46,7 +46,8 @@ const notify = async (notice) => {
           console.log(line)
         }
       } else if (option.startsWith('wxpusher:')) {
-        await fetch(`https://wxpusher.zjiecode.com/api/send/message/simple-push`, {
+//        await fetch(`https://wxpusher.zjiecode.com/api/send/message`, {
+        await fetch(`https://wxpusher.zjiecode.com/api/send/message/simple-push`, {          
           method: 'POST',
           headers: { 'content-type': 'application/json' },
           body: JSON.stringify({
