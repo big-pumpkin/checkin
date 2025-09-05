@@ -46,15 +46,16 @@ const notify = async (notice) => {
           console.log(line)
         }
       } else if (option.startsWith('wxpusher:')) {
-        await fetch(`https://wxpusher.zjiecode.com/api/send/message`, {
+        await fetch(`https://wxpusher.zjiecode.com/api/send/message/simple-push`, {
           method: 'POST',
           headers: { 'content-type': 'application/json' },
           body: JSON.stringify({
-            appToken: option.split(':')[1],
+//            appToken: option.split(':')[1],
             summary: notice[0],
             content: notice.join('<br>'),
             contentType: 3,
-            uids: option.split(':').slice(2),
+            spt: option.split(':')[1],
+//            uids: option.split(':').slice(2),
           }),
         })
       } else if (option.startsWith('pushplus:')) {
