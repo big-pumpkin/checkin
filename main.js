@@ -36,6 +36,44 @@ const glados = async () => {
   return notice
 }
 
+const railgun = async () => {
+  const notice = []
+  if (!process.env.RAILGUN) return
+  for (const cookie of String(process.env.RAILGUN).split('\n')) {
+    if (!cookie) continue
+    try {
+      const common = {
+        'cookie': cookie,
+        'referer': 'https://railgun.info/console/checkin',
+        'user-agent': 'Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 6.0)',
+      }
+      const action = await fetch('https://railgun.info/api/user/checkin', {
+        method: 'POST',
+        headers: { ...common, 'content-type': 'application/json' },
+        body: '{"token":"railgun.info"}',
+      }).then((r) => r.json())
+      if (action?.code) throw new Error(action?.message)
+      const status = await fetch('https://railgun.info/api/user/status', {
+        method: 'GET',
+        headers: { ...common },
+      }).then((r) => r.json())
+      if (status?.code) throw new Error(status?.message)
+      notice.push(
+        'Checkin OK',
+        `${action?.message}`,
+        `Left Days ${Number(status?.data?.leftDays)}`
+      )
+    } catch (error) {
+      notice.push(
+        'Checkin Error',
+        `${error}`,
+        `<${process.env.GITHUB_SERVER_URL}/${process.env.GITHUB_REPOSITORY}>`
+      )
+    }
+  }
+  return notice
+}
+
 const notify = async (notice) => {
   if (!process.env.NOTIFY || !notice) return
   for (const option of String(process.env.NOTIFY).split('\n')) {
@@ -104,6 +142,7 @@ const notify = async (notice) => {
 
 const main = async () => {
   await notify(await glados())
+  await notify(await railgun())
 }
 
 main()
