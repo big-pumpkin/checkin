@@ -141,7 +141,7 @@ const notify = async (notice) => {
 }
 
 const main = async () => {
-  await notify(await glados())
+  await notify(await glados()),
   await notify(await railgun())
 }
 
