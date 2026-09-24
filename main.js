@@ -6,16 +6,16 @@ const glados = async () => {
     try {
       const common = {
         'cookie': cookie,
-        'referer': 'https://glados.cloud/console/checkin',
+        'referer': '`https://glados.cloud/console/checkin`',
         'user-agent': 'Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 6.0)',
       }
-      const action = await fetch('https://glados.cloud/api/user/checkin', {
+      const action = await fetch('`https://glados.cloud/api/user/checkin`', {
         method: 'POST',
         headers: { ...common, 'content-type': 'application/json' },
         body: '{"token":"glados.cloud"}',
       }).then((r) => r.json())
       if (action?.code) throw new Error(action?.message)
-      const status = await fetch('https://glados.cloud/api/user/status', {
+      const status = await fetch('`https://glados.cloud/api/user/status`', {
         method: 'GET',
         headers: { ...common },
       }).then((r) => r.json())
@@ -44,16 +44,16 @@ const railgun = async () => {
     try {
       const common = {
         'cookie': cookie,
-        'referer': 'https://railgun.info/console/checkin',
+        'referer': '`https://railgun.info/console/checkin`',
         'user-agent': 'Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 6.0)',
       }
-      const action = await fetch('https://railgun.info/api/user/checkin', {
+      const action = await fetch('`https://railgun.info/api/user/checkin`', {
         method: 'POST',
         headers: { ...common, 'content-type': 'application/json' },
         body: '{"token":"railgun.info"}',
       }).then((r) => r.json())
       if (action?.code) throw new Error(action?.message)
-      const status = await fetch('https://railgun.info/api/user/status', {
+      const status = await fetch('`https://railgun.info/api/user/status`', {
         method: 'GET',
         headers: { ...common },
       }).then((r) => r.json())
@@ -62,6 +62,47 @@ const railgun = async () => {
         'Checkin OK',
         `${action?.message}`,
         `Left Days ${Number(status?.data?.leftDays)}`
+      )
+    } catch (error) {
+      notice.push(
+        'Checkin Error',
+        `${error}`,
+        `<${process.env.GITHUB_SERVER_URL}/${process.env.GITHUB_REPOSITORY}>`
+      )
+    }
+  }
+  return notice
+}
+
+const starnetcn = async () => {
+  const notice = []
+  if (!process.env.STARNETCN) return
+  for (const token of String(process.env.STARNETCN).split('\n')) {
+    if (!token) continue
+    try {
+      const common = {
+        'authorization': token,
+        'content-type': 'application/json',
+        'accept': 'application/json',
+        'user-agent': 'Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 6.0)',
+      }
+      const actionRes = await fetch('https://www.starnetcn.com/api/v1/user/checkin/claim', {
+        method: 'POST',
+        headers: common,
+        body: '{}',
+      })
+      const action = await actionRes.json().catch(() => ({}))
+      if (!actionRes.ok || action?.code) throw new Error(action?.message || action?.error || 'Checkin Failed')
+      const statusRes = await fetch('https://www.starnetcn.com/api/v1/user/checkin/info', {
+        method: 'GET',
+        headers: common,
+      })
+      const status = await statusRes.json().catch(() => ({}))
+      if (!statusRes.ok || status?.code) throw new Error(status?.message || status?.error || 'Status Failed')
+      notice.push(
+        'Checkin OK',
+        `Reward ${Number(action?.data?.reward_gb ?? status?.data?.reward_gb)} GB`,
+        `Checked In ${status?.data?.checked_in ? 'Yes' : 'No'}`
       )
     } catch (error) {
       notice.push(
@@ -84,8 +125,8 @@ const notify = async (notice) => {
           console.log(line)
         }
       } else if (option.startsWith('wxpusher:')) {
-//        await fetch(`https://wxpusher.zjiecode.com/api/send/message`, {
-        await fetch(`https://wxpusher.zjiecode.com/api/send/message/simple-push`, {          
+//        await fetch(``https://wxpusher.zjiecode.com/api/send/message``, {
+        await fetch(``https://wxpusher.zjiecode.com/api/send/message/simple-push``, {          
           method: 'POST',
           headers: { 'content-type': 'application/json' },
           body: JSON.stringify({
@@ -98,7 +139,7 @@ const notify = async (notice) => {
           }),
         })
       } else if (option.startsWith('pushplus:')) {
-        await fetch(`https://www.pushplus.plus/send`, {
+        await fetch(``https://www.pushplus.plus/send``, {
           method: 'POST',
           headers: { 'content-type': 'application/json' },
           body: JSON.stringify({
@@ -110,7 +151,7 @@ const notify = async (notice) => {
         })
       } else if (option.startsWith('qyweixin:')) {
         const qyweixinToken = option.split(':')[1]
-        const qyweixinNotifyRebotUrl = 'https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=' + qyweixinToken;
+        const qyweixinNotifyRebotUrl = '`https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=`' + qyweixinToken;
         await fetch(qyweixinNotifyRebotUrl, {
           method: 'POST',
           headers: { 'content-type': 'application/json' },
@@ -123,7 +164,7 @@ const notify = async (notice) => {
         })
       } else {
         // fallback
-        await fetch(`https://www.pushplus.plus/send`, {
+        await fetch(``https://www.pushplus.plus/send``, {
           method: 'POST',
           headers: { 'content-type': 'application/json' },
           body: JSON.stringify({
@@ -141,8 +182,9 @@ const notify = async (notice) => {
 }
 
 const main = async () => {
-  await notify(await glados()),
+  await notify(await glados())
   await notify(await railgun())
+  await notify(await starnetcn())
 }
 
 main()
