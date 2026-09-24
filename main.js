@@ -6,16 +6,16 @@ const glados = async () => {
     try {
       const common = {
         'cookie': cookie,
-        'referer': '`https://glados.cloud/console/checkin`',
+        'referer': 'https://glados.cloud/console/checkin',
         'user-agent': 'Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 6.0)',
       }
-      const action = await fetch('`https://glados.cloud/api/user/checkin`', {
+      const action = await fetch('https://glados.cloud/api/user/checkin', {
         method: 'POST',
         headers: { ...common, 'content-type': 'application/json' },
         body: '{"token":"glados.cloud"}',
       }).then((r) => r.json())
       if (action?.code) throw new Error(action?.message)
-      const status = await fetch('`https://glados.cloud/api/user/status`', {
+      const status = await fetch('https://glados.cloud/api/user/status', {
         method: 'GET',
         headers: { ...common },
       }).then((r) => r.json())
@@ -44,16 +44,16 @@ const railgun = async () => {
     try {
       const common = {
         'cookie': cookie,
-        'referer': '`https://railgun.info/console/checkin`',
+        'referer': 'https://railgun.info/console/checkin',
         'user-agent': 'Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 6.0)',
       }
-      const action = await fetch('`https://railgun.info/api/user/checkin`', {
+      const action = await fetch('https://railgun.info/api/user/checkin', {
         method: 'POST',
         headers: { ...common, 'content-type': 'application/json' },
         body: '{"token":"railgun.info"}',
       }).then((r) => r.json())
       if (action?.code) throw new Error(action?.message)
-      const status = await fetch('`https://railgun.info/api/user/status`', {
+      const status = await fetch('https://railgun.info/api/user/status', {
         method: 'GET',
         headers: { ...common },
       }).then((r) => r.json())
@@ -125,21 +125,22 @@ const notify = async (notice) => {
           console.log(line)
         }
       } else if (option.startsWith('wxpusher:')) {
-//        await fetch(``https://wxpusher.zjiecode.com/api/send/message``, {
-        await fetch(``https://wxpusher.zjiecode.com/api/send/message/simple-push``, {          
+        const wxRes = await fetch('https://wxpusher.zjiecode.com/api/send/message/simple-push', {
           method: 'POST',
           headers: { 'content-type': 'application/json' },
           body: JSON.stringify({
-//            appToken: option.split(':')[1],
             summary: notice[0],
             content: notice.join('<br>'),
             contentType: 3,
             spt: option.split(':')[1],
-//            uids: option.split(':').slice(2),
           }),
         })
+        const wxData = await wxRes.json().catch(() => ({}))
+        if (!wxRes.ok || wxData?.success === false) {
+          throw new Error(`wxpusher ${wxData?.code ?? wxRes.status}: ${wxData?.msg || 'request failed'}`)
+        }
       } else if (option.startsWith('pushplus:')) {
-        await fetch(``https://www.pushplus.plus/send``, {
+        await fetch('https://www.pushplus.plus/send', {
           method: 'POST',
           headers: { 'content-type': 'application/json' },
           body: JSON.stringify({
@@ -151,7 +152,7 @@ const notify = async (notice) => {
         })
       } else if (option.startsWith('qyweixin:')) {
         const qyweixinToken = option.split(':')[1]
-        const qyweixinNotifyRebotUrl = '`https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=`' + qyweixinToken;
+        const qyweixinNotifyRebotUrl = 'https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=' + qyweixinToken
         await fetch(qyweixinNotifyRebotUrl, {
           method: 'POST',
           headers: { 'content-type': 'application/json' },
@@ -164,7 +165,7 @@ const notify = async (notice) => {
         })
       } else {
         // fallback
-        await fetch(``https://www.pushplus.plus/send``, {
+        await fetch('https://www.pushplus.plus/send', {
           method: 'POST',
           headers: { 'content-type': 'application/json' },
           body: JSON.stringify({
@@ -176,7 +177,7 @@ const notify = async (notice) => {
         })
       }
     } catch (error) {
-      throw error
+      console.error(`Notify Error [${option.split(':')[0]}]:`, error)
     }
   }
 }
