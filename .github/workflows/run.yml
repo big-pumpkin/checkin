@@ -18,3 +18,4 @@ jobs:
           GLADOS: ${{ secrets.GLADOS }}
           RAILGUN: ${{ secrets.RAILGUN }}
           NOTIFY: ${{ secrets.NOTIFY }}
+          STARNETCN: ${{ secrets.STARNETCN }}
